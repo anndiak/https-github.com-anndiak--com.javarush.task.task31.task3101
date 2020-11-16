@@ -1,0 +1,62 @@
+package com.javarush.task.task31.task3101;
+
+import java.io.*;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.*;
+
+/*
+Проход по дереву файлов
+1. На вход метода main() подаются два параметра.
+Первый - path - путь к директории, второй - resultFileAbsolutePath - имя (полный путь) существующего файла, который будет содержать результат.
+2. Переименовать resultFileAbsolutePath в allFilesContent.txt (используй метод FileUtils.renameFile(), и, если понадобится, FileUtils.isExist()).
+3. Для каждого файла в директории path и в ее всех вложенных поддиректориях выполнить следующее:
+Если у файла длина в байтах НЕ больше 50, то для всех таких файлов:
+3.1. Отсортировать их по имени файла в возрастающем порядке, путь не учитывать при сортировке.
+3.2. В allFilesContent.txt последовательно записать содержимое всех файлов из п. 3.1. После каждого тела файла записать "\n".
+Все файлы имеют расширение txt.
+В качестве разделителя пути используй "/".
+Для создания файлов используй конструктор File(String pathname).
+*/
+
+public class Solution {
+    public static <e> void main(String[] args) throws IOException {
+        String path = args[0];
+        File resultFileAbsolutePath = new File(args[1]);
+        File allFileContent = new File(resultFileAbsolutePath.getParent()+"/"+"allFilesContent.txt");
+        //перейменовуємо файл
+        FileUtils.renameFile(resultFileAbsolutePath,allFileContent);
+
+           // відкриваємо потік для запису
+            try(FileOutputStream fos = new FileOutputStream(allFileContent)) {
+                //створюємо ТreeMap для того що ключі map(імена файлів)сортувались автоматично
+                Map<String, File> map = new TreeMap<>();
+                find_size(map, path);
+                //проходимо по map
+                for (Map.Entry<String, File> entry : map.entrySet()) {
+                    //зчитуємо в масив вміст файлу
+                    byte[] bytes = Files.readAllBytes(Paths.get(entry.getValue().getPath()));
+                    //записуємо у файл
+                    fos.write(bytes);
+                    if (bytes.length > 0) {
+                        fos.write("\n".getBytes());
+                    }
+                }
+            }
+
+
+    }
+    //заповнюємо map файлами та їх назвою розмір яких <= 50
+    public static void find_size(Map<String,File>map, String path){
+        File files = new File(path);
+       File[] file = files.listFiles();
+       for(int i = 0;i < file.length;i++){
+           if(file[i].isFile() && file[i].length() <= 50 &&  file[i].length() > 0){
+               map.put(file[i].getName(), file[i]);
+           }
+           if(file[i].isDirectory()){
+               find_size(map, file[i].getPath());
+           }
+       }
+    }
+}
